@@ -1,18 +1,3 @@
-extension XML {
-    enum Error: Swift.Error {
-        case invalidXmlHeader
-        case invalidXmlEncoding
-        case invalidClosedTag
-        case invalidOpeningTag
-        case invalidOpeningTagName
-        case invalidClosingTag
-        case invalidClosingTagName
-        case invalidAttribute
-        case invalidAttributeValue
-        case duplicateAttribute
-    }
-}
-
 public struct XML {
     public enum Node {
         case element(Element)
@@ -24,8 +9,7 @@ public struct XML {
     }
 
     public enum Standalone {
-        case yes
-        case no
+        case yes, no
     }
 
     public struct Document {
@@ -62,22 +46,14 @@ public struct XML {
             self.attributes = attributes
             self.children = children
         }
-
-        public var value: String {
-            var result = ""
-            for child in children {
-                if case .text(let string) = child {
-                    result += string
-                }
-            }
-            return result
-        }
     }
 }
 
 extension XML.Element: Equatable {
     public static func == (lhs: XML.Element, rhs: XML.Element) -> Bool {
-        return lhs.name == rhs.name && lhs.children == rhs.children
+        return lhs.name == rhs.name
+            && lhs.attributes == rhs.attributes
+            && lhs.children == rhs.children
     }
 }
 
