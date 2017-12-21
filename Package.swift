@@ -8,13 +8,16 @@ let package = Package(
     ],
     dependencies: [
         .package(
+            url: "https://github.com/swift-stack/stream.git",
+            .branch("master")),
+        .package(
             url: "https://github.com/swift-stack/test.git",
             .branch("master"))
     ],
     targets: [
         .target(
             name: "XML",
-            dependencies: []),
+            dependencies: ["Stream"]),
         .testTarget(
             name: "XMLTests",
             dependencies: ["XML", "Test"]),
