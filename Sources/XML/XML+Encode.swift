@@ -54,14 +54,6 @@ extension XML.Element {
 
 extension UnsafeStreamWriter {
     func write(xml: String) throws {
-        let bytes = [UInt8](xml.utf8)
-        var written = 0
-        while written < bytes.count {
-            let count = try write(bytes[written...])
-            guard count > 0 else {
-                throw StreamError.notEnoughSpace
-            }
-            written += count
-        }
+        try write([UInt8](xml.utf8))
     }
 }
