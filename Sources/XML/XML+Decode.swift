@@ -19,7 +19,7 @@ extension XML.Standalone {
     }
 }
 
-extension UnsafeStreamReader {
+extension StreamReader {
     func consumeWhitespaces(includingNewLine: Bool = false) throws {
         switch includingNewLine {
         case true:
@@ -32,22 +32,25 @@ extension UnsafeStreamReader {
     }
 
     func readAttributeName() throws -> String? {
-        let buffer = try read(allowedBytes: .xmlName)
-        guard buffer.count > 0 else {
-            return nil
+        return try read(allowedBytes: .xmlName) { bytes in
+            guard bytes.count > 0 else {
+                return nil
+            }
+            return String(decoding: bytes, as: UTF8.self)
         }
-        return String(decoding: buffer, as: UTF8.self)
     }
 
     func readAttributeValue() throws -> String {
         guard try consume(.doubleQuote) else {
             throw XML.Error.invalidAttributeValue
         }
-        let buffer = try read(allowedBytes: .xmlName)
+        let value = try read(allowedBytes: .xmlName) { bytes in
+            return String(decoding: bytes, as: UTF8.self)
+        }
         guard try consume(.doubleQuote) else {
             throw XML.Error.invalidAttributeValue
         }
-        return String(decoding: buffer, as: UTF8.self)
+        return value
     }
 
     func readAttribute() throws -> (String, String)? {
@@ -76,7 +79,7 @@ extension UnsafeStreamReader {
 }
 
 extension XML.Document {
-    public init<T: UnsafeStreamReader>(from stream: T) throws {
+    public init<T: StreamReader>(from stream: T) throws {
         try stream.consumeWhitespaces(includingNewLine: true)
 
         guard try stream.consume(sequence: Constants.xmlHeaderStart) else {
@@ -115,7 +118,7 @@ extension UnsafeRawBufferPointer {
 }
 
 extension XML.Element {
-    public init<T: UnsafeStreamReader>(from stream: T) throws {
+    public init<T: StreamReader>(from stream: T) throws {
         guard try stream.consume(.angleBracketOpen) else {
             throw XML.Error.invalidOpeningTag
         }
@@ -146,10 +149,11 @@ extension XML.Element {
         var children = [XML.Node]()
 
         // content until child/closing tag
-        var buffer = try stream.read(until: .angleBracketOpen)
-        if !buffer.isEmptyOrWhitespace {
-            let text = String(decoding: buffer, as: UTF8.self)
-            children.append(.text(text))
+        try stream.read(until: .angleBracketOpen) { bytes in
+            if !bytes.isEmptyOrWhitespace {
+                let text = String(decoding: bytes, as: UTF8.self)
+                children.append(.text(text))
+            }
         }
 
         // read children
@@ -160,11 +164,16 @@ extension XML.Element {
         }
 
         // read closing tag
-        buffer = try stream.read(until: .angleBracketClose)
-        guard buffer.count > 0, try stream.consume(.angleBracketClose) else {
+        let closingName = try stream.read(until: .angleBracketClose)
+        { bytes -> String in
+            guard bytes.count > 0 else {
+                throw XML.Error.invalidClosingTag
+            }
+            return String(decoding: bytes, as: UTF8.self)
+        }
+        guard try stream.consume(.angleBracketClose) else {
             throw XML.Error.invalidClosingTag
         }
-        let closingName = String(decoding: buffer, as: UTF8.self)
         guard closingName == name else {
             throw XML.Error.invalidClosingTagName
         }

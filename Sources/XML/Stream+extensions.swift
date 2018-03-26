@@ -1,18 +1,5 @@
 import Stream
 
-extension UnsafeStreamReader {
-    func consume(sequence: [UInt8]) throws -> Bool {
-        guard let buffer = try peek(count: sequence.count) else {
-            throw StreamError.insufficientData
-        }
-        guard buffer.elementsEqual(sequence) else {
-            return false
-        }
-        try consume(count: sequence.count)
-        return true
-    }
-}
-
 final class AllowedBytes {
     @_versioned
     let buffer: UnsafeBufferPointer<Bool>
@@ -27,9 +14,11 @@ final class AllowedBytes {
     }
 }
 
-extension UnsafeStreamReader {
-    func read(allowedBytes: AllowedBytes) throws -> UnsafeRawBufferPointer {
+extension StreamReader {
+    func read<T>(
+        allowedBytes: AllowedBytes,
+        body: (UnsafeRawBufferPointer) throws -> T) throws -> T {
         let buffer = allowedBytes.buffer
-        return try read(while: { buffer[Int($0)] })
+        return try read(while: { buffer[Int($0)] }, body: body)
     }
 }
