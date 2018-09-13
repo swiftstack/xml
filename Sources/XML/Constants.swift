@@ -1,16 +1,5 @@
 import Stream
 
-extension UInt8 {
-    static let whitespace = UInt8(ascii: " ")
-    static let doubleQuote = UInt8(ascii: "\"")
-    static let angleBracketOpen = UInt8(ascii: "<")
-    static let angleBracketClose = UInt8(ascii: ">")
-    static let slash = UInt8(ascii: "/")
-    static let equal = UInt8(ascii: "=")
-    static let cr = UInt8(ascii: "\r")
-    static let lf = UInt8(ascii: "\n")
-}
-
 struct Constants {
     static let lineEnd: [UInt8] = [.cr, .lf]
 
