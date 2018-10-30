@@ -4,11 +4,11 @@ public struct XML {
         case text(String)
     }
 
-    public enum Encoding {
-        case utf8
+    public enum Encoding: String {
+        case utf8 = "utf-8"
     }
 
-    public enum Standalone {
+    public enum Standalone: String {
         case yes, no
     }
 

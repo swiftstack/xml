@@ -34,6 +34,22 @@ class XMLDecodeTests: TestCase {
         }
     }
 
+    func testUppercasedHeader() {
+        scope {
+            let stream = InputByteStream("""
+                <?xml version="1.0" encoding="UTF-8" standalone="NO"?>
+                <root></root>
+
+                """)
+            let document = try XML.Document(from: stream)
+
+            assertEqual(document.version, "1.0")
+            assertEqual(document.encoding, .utf8)
+            assertEqual(document.standalone, .no)
+            assertEqual(document.root, XML.Element(name: "root"))
+        }
+    }
+
     func testSelfElement() {
         do {
             let stream = InputByteStream("<element/>")

@@ -1,21 +1,22 @@
 import Stream
 
 extension XML.Encoding {
-    init(_ string: String) throws {
-        guard string == "utf-8" else {
+    public init(from string: String) throws {
+        let lowercased = string.lowercased()
+        guard let encoding = XML.Encoding(rawValue: lowercased) else {
             throw XML.Error.invalidXmlEncoding
         }
-        self = .utf8
+        self = encoding
     }
 }
 
 extension XML.Standalone {
-    init(_ string: String) throws {
-        switch string {
-        case "yes": self = .yes
-        case "no": self = .no
-        default: throw XML.Error.invalidXmlHeader
+    init(from string: String) throws {
+        let lowercased = string.lowercased()
+        guard let standalone = XML.Standalone(rawValue: lowercased) else {
+            throw XML.Error.invalidXmlHeader
         }
+        self = standalone
     }
 }
 
@@ -91,8 +92,8 @@ extension XML.Document {
         while let (name, value) = try stream.readAttribute() {
             switch name {
             case "version": self.version = value
-            case "encoding": self.encoding = try XML.Encoding(value)
-            case "standalone": self.standalone = try XML.Standalone(value)
+            case "encoding": self.encoding = try XML.Encoding(from: value)
+            case "standalone": self.standalone = try XML.Standalone(from: value)
             default: break
             }
             try stream.consumeWhitespaces(includingNewLine: true)
