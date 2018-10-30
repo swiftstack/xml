@@ -10,7 +10,7 @@ extension OutputByteStream {
 
 class XMLEncodeTests: TestCase {
     func testDocument() {
-        do {
+        scope {
             let root = XML.Element(
                 name: "root",
                 children: [
@@ -34,13 +34,11 @@ class XMLEncodeTests: TestCase {
             let stream = OutputByteStream()
             try document.encode(to: stream)
             assertEqual(stream.string, xml)
-        } catch {
-            fail(String(describing: error))
         }
     }
 
     func testSelfElement() {
-        do {
+        scope {
             let element = XML.Element(name: "element")
 
             let xml = "<element/>"
@@ -48,13 +46,11 @@ class XMLEncodeTests: TestCase {
             let stream = OutputByteStream()
             try element.encode(to: stream)
             assertEqual(stream.string, xml)
-        } catch {
-            fail(String(describing: error))
         }
     }
 
     func testTextElement() {
-        do {
+        scope {
             let element = XML.Element(
                 name: "element",
                 children: [.text("text")])
@@ -64,13 +60,11 @@ class XMLEncodeTests: TestCase {
             let stream = OutputByteStream()
             try element.encode(to: stream)
             assertEqual(stream.string, xml)
-        } catch {
-            fail(String(describing: error))
         }
     }
 
     func testElement() {
-        do {
+        scope {
             let element = XML.Element(
                 name: "root",
                 children: [.element(XML.Element(
@@ -83,13 +77,11 @@ class XMLEncodeTests: TestCase {
             let stream = OutputByteStream()
             try element.encode(to: stream)
             assertEqual(stream.string, xml)
-        } catch {
-            fail(String(describing: error))
         }
     }
 
     func testElementChildren() {
-        do {
+        scope {
             let element = XML.Element(
                 name: "root",
                 children: [
@@ -111,13 +103,11 @@ class XMLEncodeTests: TestCase {
             let stream = OutputByteStream()
             try element.encode(to: stream)
             assertEqual(stream.string, xml)
-        } catch {
-            fail(String(describing: error))
         }
     }
 
     func testSelfElementAttributes() {
-        do {
+        scope {
             let element = XML.Element(
                 name: "element",
                 attributes: ["name" : "value"])
@@ -127,13 +117,11 @@ class XMLEncodeTests: TestCase {
             let stream = OutputByteStream()
             try element.encode(to: stream)
             assertEqual(stream.string, xml)
-        } catch {
-            fail(String(describing: error))
         }
     }
 
     func testTextElementAttributes() {
-        do {
+        scope {
             let element = XML.Element(
                 name: "element",
                 attributes: ["name" : "value"],
@@ -144,8 +132,6 @@ class XMLEncodeTests: TestCase {
             let stream = OutputByteStream()
             try element.encode(to: stream)
             assertEqual(stream.string, xml)
-        } catch {
-            fail(String(describing: error))
         }
     }
 }
