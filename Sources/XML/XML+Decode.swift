@@ -208,12 +208,8 @@ struct Attribute {
 extension StreamReader {
     func consumeWhitespaces(includingNewLine: Bool = false) throws {
         switch includingNewLine {
-        case true:
-            try consume(while: { byte in
-                byte == .whitespace || byte == .cr || byte == .lf
-            })
-        case false:
-            try consume(while: { $0 == .whitespace })
+        case true: try consume(while: { $0.isNewLineOrWhitespace })
+        case false: try consume(while: { $0 == .whitespace })
         }
     }
 }
