@@ -5,12 +5,12 @@ import Stream
 extension XML.Document {
     public func encode<T: StreamWriter>(
         to stream: T,
-        prettify: Bool = false
+        format: Format = .compact
     ) throws {
         var xml = ""
-        encodeHeader(to: &xml, prettify: prettify)
+        encodeHeader(to: &xml, format: format)
         if let root = root {
-            root.encode(to: &xml, prettify: prettify)
+            root.encode(to: &xml, format: format)
         }
         try stream.write(xml: xml)
     }
@@ -19,18 +19,10 @@ extension XML.Document {
 extension XML.Element {
     public func encode<T: StreamWriter>(
         to stream: T,
-        prettify: Bool = false
-    ) throws {
-        try encode(to: stream, prettify: prettify, currentLevel: 0)
-    }
-
-    func encode<T: StreamWriter>(
-        to stream: T,
-        prettify: Bool,
-        currentLevel: Int
+        format: Format = .compact
     ) throws {
         var xml = ""
-        encode(to: &xml, prettify: prettify, currentLevel: currentLevel)
+        encode(to: &xml, format: format)
         try stream.write(xml: xml)
     }
 }
