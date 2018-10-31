@@ -1,84 +1,5 @@
 import Stream
 
-extension XML.Encoding {
-    public init(from string: String) throws {
-        let lowercased = string.lowercased()
-        guard let encoding = XML.Encoding(rawValue: lowercased) else {
-            throw XML.Error.invalidXmlEncoding
-        }
-        self = encoding
-    }
-}
-
-extension XML.Standalone {
-    init(from string: String) throws {
-        let lowercased = string.lowercased()
-        guard let standalone = XML.Standalone(rawValue: lowercased) else {
-            throw XML.Error.invalidXmlHeader
-        }
-        self = standalone
-    }
-}
-
-extension StreamReader {
-    func consumeWhitespaces(includingNewLine: Bool = false) throws {
-        switch includingNewLine {
-        case true:
-            try consume(while: { byte in
-                byte == .whitespace || byte == .cr || byte == .lf
-            })
-        case false:
-            try consume(while: { $0 == .whitespace })
-        }
-    }
-
-    func readAttributeName() throws -> String? {
-        return try read(allowedBytes: .xmlName) { bytes in
-            guard bytes.count > 0 else {
-                return nil
-            }
-            return String(decoding: bytes, as: UTF8.self)
-        }
-    }
-
-    func readAttributeValue() throws -> String {
-        guard try consume(.doubleQuote) else {
-            throw XML.Error.invalidAttributeValue
-        }
-        let value = try read(allowedBytes: .xmlName) { bytes in
-            return String(decoding: bytes, as: UTF8.self)
-        }
-        guard try consume(.doubleQuote) else {
-            throw XML.Error.invalidAttributeValue
-        }
-        return value
-    }
-
-    func readAttribute() throws -> (String, String)? {
-        guard let name = try readAttributeName() else {
-            return nil
-        }
-        guard try consume(.equal) else {
-            throw XML.Error.invalidAttribute
-        }
-        let value = try readAttributeValue()
-
-        return (name, value)
-    }
-
-    func readAttributes() throws -> [String : String] {
-        var attributes = [String : String]()
-        while let (name, value) = try readAttribute() {
-            guard attributes[name] == nil else {
-                throw XML.Error.duplicateAttribute
-            }
-            attributes[name] = value
-            try consumeWhitespaces(includingNewLine: true)
-        }
-        return attributes
-    }
-}
-
 extension XML.Document {
     public init<T: StreamReader>(from stream: T) throws {
         try stream.consumeWhitespaces(includingNewLine: true)
@@ -89,13 +10,8 @@ extension XML.Document {
 
         try stream.consumeWhitespaces(includingNewLine: true)
 
-        while let (name, value) = try stream.readAttribute() {
-            switch name {
-            case "version": self.version = value
-            case "encoding": self.encoding = try XML.Encoding(from: value)
-            case "standalone": self.standalone = try XML.Standalone(from: value)
-            default: break
-            }
+        while try stream.peek() != .questionMark {
+            try consumeAttribute(try Attribute(from: stream))
             try stream.consumeWhitespaces(includingNewLine: true)
         }
 
@@ -107,42 +23,61 @@ extension XML.Document {
 
         self.root = try XML.Element(from: stream)
     }
-}
 
-extension UnsafeRawBufferPointer {
-    var isEmptyOrWhitespace: Bool {
-        let index = self.first(where: { byte in
-            byte != .whitespace && byte != .cr && byte != .lf
-        })
-        return index == nil
+    mutating func consumeAttribute(_ attribute: Attribute) throws {
+        switch attribute.name {
+        case "version": self.version = attribute.value
+        case "encoding": self.encoding = try .init(from: attribute.value)
+        case "standalone": self.standalone = try .init(from: attribute.value)
+        default: break
+        }
     }
 }
 
 extension XML.Element {
+    struct Name: Equatable {
+        let value: String
+
+        init?<T: StreamReader>(from stream: T) throws {
+            guard let value = try Name.read(from: stream) else {
+                return nil
+            }
+            self.value = value
+        }
+
+        static func read<T: StreamReader>(from stream: T) throws -> String? {
+            return try stream.read(allowedBytes: .xmlName) { bytes in
+                guard bytes.count > 0 else {
+                    return nil
+                }
+                return String(decoding: bytes, as: UTF8.self)
+            }
+        }
+    }
+
     public init<T: StreamReader>(from stream: T) throws {
         guard try stream.consume(.angleBracketOpen) else {
             throw XML.Error.invalidOpeningTag
         }
-        guard let name = try stream.readAttributeName() else {
+        guard let name = try Name(from: stream) else {
             throw XML.Error.invalidOpeningTagName
         }
-
         try stream.consumeWhitespaces(includingNewLine: true)
 
-        // read attributes
-        let attributes = try stream.readAttributes()
+        let attributes = try Attributes(from: stream)
 
-        // check for self closing tag
+        // check for self-closing tag
         if try stream.consume(.slash) {
             guard try stream.consume(.angleBracketClose) else {
-                throw XML.Error.invalidClosedTag
+                throw XML.Error.invalidSelfClosingTag
             }
-            self.name = name
-            self.attributes = attributes
+            self.name = name.value
+            self.attributes = attributes.values
             self.children = []
             return
         }
 
+        // closing bracket
         guard try stream.consume(.angleBracketClose) else {
             throw XML.Error.invalidOpeningTag
         }
@@ -165,22 +100,123 @@ extension XML.Element {
         }
 
         // read closing tag
-        let closingName = try stream.read(until: .angleBracketClose)
-        { bytes -> String in
-            guard bytes.count > 0 else {
-                throw XML.Error.invalidClosingTag
-            }
-            return String(decoding: bytes, as: UTF8.self)
+        guard let closingName = try Name(from: stream) else {
+            throw XML.Error.invalidClosingTagName
         }
         guard try stream.consume(.angleBracketClose) else {
             throw XML.Error.invalidClosingTag
         }
         guard closingName == name else {
-            throw XML.Error.invalidClosingTagName
+            throw XML.Error.invalidClosingTagNameMismatch
         }
-
-        self.name = name
-        self.attributes = attributes
+        
+        self.name = name.value
+        self.attributes = attributes.values
         self.children = children
+    }
+}
+
+extension XML.Encoding {
+    init(from string: String) throws {
+        let lowercased = string.lowercased()
+        guard let encoding = XML.Encoding(rawValue: lowercased) else {
+            throw XML.Error.invalidXmlEncoding
+        }
+        self = encoding
+    }
+}
+
+extension XML.Standalone {
+    init(from string: String) throws {
+        let lowercased = string.lowercased()
+        guard let standalone = XML.Standalone(rawValue: lowercased) else {
+            throw XML.Error.invalidXmlHeader
+        }
+        self = standalone
+    }
+}
+
+struct Attributes {
+    var values: [String : String]
+
+    subscript(_ name: String) -> String? {
+        get { return values[name] }
+        set { values[name] = newValue }
+    }
+
+    init<T: StreamReader>(from stream: T) throws {
+        func isClosingTag() throws -> Bool {
+            switch try stream.peek() {
+            case .slash, .angleBracketClose: return true
+            default: return false
+            }
+        }
+        var attributes = [String : String]()
+        while !(try isClosingTag()) {
+            let attribute = try Attribute(from: stream)
+            guard attributes[attribute.name] == nil else {
+                throw XML.Error.duplicateAttribute
+            }
+            attributes[attribute.name] = attribute.value
+            try stream.consumeWhitespaces(includingNewLine: true)
+        }
+        self.values = attributes
+    }
+}
+
+struct Attribute {
+    let name: String
+    let value: String
+
+    init<T: StreamReader>(from stream: T) throws {
+        self.name = try Attribute.readName(from: stream)
+        guard try stream.consume(.equal) else {
+            throw XML.Error.invalidAttribute
+        }
+        self.value = try Attribute.readValue(from: stream)
+    }
+
+    static func readName<T: StreamReader>(from stream: T) throws -> String {
+        return try stream.read(allowedBytes: .xmlName) { bytes in
+            guard bytes.count > 0 else {
+                throw XML.Error.invalidAttributeName
+            }
+            return String(decoding: bytes, as: UTF8.self)
+        }
+    }
+
+    static func readValue<T: StreamReader>(from stream: T) throws -> String {
+        guard try stream.consume(.doubleQuote) else {
+            throw XML.Error.invalidAttributeValue
+        }
+        let value = try stream.read(allowedBytes: .xmlName) { bytes in
+            return String(decoding: bytes, as: UTF8.self)
+        }
+        guard try stream.consume(.doubleQuote) else {
+            throw XML.Error.invalidAttributeValue
+        }
+        return value
+    }
+}
+
+extension StreamReader {
+    func consumeWhitespaces(includingNewLine: Bool = false) throws {
+        switch includingNewLine {
+        case true:
+            try consume(while: { byte in
+                byte == .whitespace || byte == .cr || byte == .lf
+            })
+        case false:
+            try consume(while: { $0 == .whitespace })
+        }
+    }
+}
+
+extension UnsafeRawBufferPointer {
+    var isEmptyOrWhitespace: Bool {
+        let index = self.first(where: { byte in
+            byte != .whitespace && byte != .cr && byte != .lf
+        })
+        return index == nil
     }
 }
