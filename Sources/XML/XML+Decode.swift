@@ -34,6 +34,21 @@ extension XML.Document {
     }
 }
 
+extension XML.Node {
+    public init<T: StreamReader>(from stream: T) throws {
+        switch try stream.peek() {
+        case .angleBracketOpen: self = .element(try .init(from: stream))
+        default: self = .text(try XML.Node.readText(from: stream))
+        }
+    }
+
+    static func readText<T: StreamReader>(from stream: T) throws -> String {
+        return try stream.read(until: .angleBracketOpen) { bytes in
+            return String(decoding: bytes.trimEnd(), as: UTF8.self)
+        }
+    }
+}
+
 extension XML.Element {
     struct Name: Equatable {
         let value: String
@@ -82,20 +97,11 @@ extension XML.Element {
             throw XML.Error.invalidOpeningTag
         }
 
-        var children = [XML.Node]()
-
-        // content until child/closing tag
-        try stream.read(until: .angleBracketOpen) { bytes in
-            if !bytes.isEmptyOrWhitespace {
-                let text = String(decoding: bytes, as: UTF8.self)
-                children.append(.text(text))
-            }
-        }
-
         // read children
+        var children = [XML.Node]()
+        try stream.consumeWhitespaces(includingNewLine: true)
         while !(try stream.consume(sequence: [.angleBracketOpen, .slash])) {
-            let child = try XML.Element(from: stream)
-            children.append(.element(child))
+            children.append(try XML.Node(from: stream))
             try stream.consumeWhitespaces(includingNewLine: true)
         }
 
@@ -213,10 +219,19 @@ extension StreamReader {
 }
 
 extension UnsafeRawBufferPointer {
-    var isEmptyOrWhitespace: Bool {
-        let index = self.first(where: { byte in
-            byte != .whitespace && byte != .cr && byte != .lf
-        })
-        return index == nil
+    func trimEnd() -> UnsafeRawBufferPointer.SubSequence {
+        guard let end = lastIndex(where: { !$0.isNewLineOrWhitespace }) else {
+            return self[...]
+        }
+        return self[...end]
+    }
+}
+
+extension UInt8 {
+    var isNewLineOrWhitespace: Bool {
+        switch self {
+        case .whitespace, .cr, .lf: return true
+        default: return false
+        }
     }
 }

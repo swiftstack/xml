@@ -48,6 +48,37 @@ class XMLDecodeTests: TestCase {
         }
     }
 
+    func testNode() {
+        assertNoThrow(try XML.Node(from: InputByteStream("<element/>")))
+    }
+
+    func testNodeElement() {
+        scope {
+            let node = try XML.Node(from: InputByteStream("<element/>"))
+            assertEqual(node, .element(.init(name: "element")))
+        }
+    }
+
+    func testNodeText() {
+        scope {
+            let stream = InputByteStream("""
+                <root>
+                    text start
+                    <element/>
+                    text end
+                </root>
+                """)
+            let node = try XML.Node(from: stream)
+            assertEqual(node, .element(.init(
+                name: "root",
+                children: [
+                    .text("text start"),
+                    .element(.init(name: "element")),
+                    .text("text end"),
+                ])))
+        }
+    }
+
     func testSelfElement() {
         scope {
             let stream = InputByteStream("<element/>")
