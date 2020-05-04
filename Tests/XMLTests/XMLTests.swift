@@ -4,36 +4,36 @@ import Test
 class XMLTests: TestCase {
     func testDocument() {
         let document = XML.Document()
-        assertEqual(document.version, "1.0")
-        assertEqual(document.encoding, .utf8)
-        assertEqual(document.standalone, .no)
-        assertNil(document.root)
+        expect(document.version == "1.0")
+        expect(document.encoding == .utf8)
+        expect(document.standalone == .no)
+        expect(document.root == nil)
     }
 
     func testElement() {
         let element = XML.Element(name: "root")
-        assertEqual(element.name, "root")
-        assertEqual(element.attributes, [:])
-        assertEqual(element.children, [])
+        expect(element.name == "root")
+        expect(element.attributes == [:])
+        expect(element.children == [])
     }
 
     func testElementNode() {
         let node = XML.Node.element(XML.Element(name: "root"))
-        assertEqual(node, .element(XML.Element(name: "root")))
+        expect(node == .element(XML.Element(name: "root")))
     }
 
     func testTextNode() {
         let node = XML.Node.text("text")
-        assertEqual(node, .text("text"))
+        expect(node == .text("text"))
     }
 
     func testElementChildren() {
         let element = XML.Element(name: "root", children: [.text("text")])
-        assertEqual(element.children, [.text("text")])
+        expect(element.children == [.text("text")])
     }
 
     func testNodeValue() {
         let element = XML.Element(name: "root", children: [.text("text")])
-        assertEqual(element.value, "text")
+        expect(element.value == "text")
     }
 }

@@ -19,10 +19,10 @@ class XMLDecodeTests: TestCase {
                 """)
             let document = try XML.Document(from: stream)
 
-            assertEqual(document.version, "1.0")
-            assertEqual(document.encoding, .utf8)
-            assertEqual(document.standalone, .no)
-            assertEqual(document.root, XML.Element(
+            expect(document.version == "1.0")
+            expect(document.encoding == .utf8)
+            expect(document.standalone == .no)
+            expect(document.root == XML.Element(
                 name: "root",
                 children: [
                     .element(XML.Element(
@@ -41,49 +41,45 @@ class XMLDecodeTests: TestCase {
                 """)
             let document = try XML.Document(from: stream)
 
-            assertEqual(document.version, "1.0")
-            assertEqual(document.encoding, .utf8)
-            assertEqual(document.standalone, .no)
-            assertEqual(document.root, XML.Element(name: "root"))
+            expect(document.version == "1.0")
+            expect(document.encoding == .utf8)
+            expect(document.standalone == .no)
+            expect(document.root == XML.Element(name: "root"))
         }
     }
 
-    func testNode() {
-        assertNoThrow(try XML.Node(from: InputByteStream("<element/>")))
+    func testNode() throws {
+        _ = try XML.Node(from: InputByteStream("<element/>"))
     }
 
-    func testNodeElement() {
-        scope {
-            let node = try XML.Node(from: InputByteStream("<element/>"))
-            assertEqual(node, .element(.init(name: "element")))
-        }
+    func testNodeElement() throws {
+        let node = try XML.Node(from: InputByteStream("<element/>"))
+        expect(node == .element(.init(name: "element")))
     }
 
-    func testNodeText() {
-        scope {
-            let stream = InputByteStream("""
-                <root>
-                    text start
-                    <element/>
-                    text end
-                </root>
-                """)
-            let node = try XML.Node(from: stream)
-            assertEqual(node, .element(.init(
-                name: "root",
-                children: [
-                    .text("text start"),
-                    .element(.init(name: "element")),
-                    .text("text end"),
-                ])))
-        }
+    func testNodeText() throws {
+        let stream = InputByteStream("""
+            <root>
+                text start
+                <element/>
+                text end
+            </root>
+            """)
+        let node = try XML.Node(from: stream)
+        expect(node == .element(.init(
+            name: "root",
+            children: [
+                .text("text start"),
+                .element(.init(name: "element")),
+                .text("text end"),
+            ])))
     }
 
     func testSelfElement() {
         scope {
             let stream = InputByteStream("<element/>")
             let element = try XML.Element(from: stream)
-            assertEqual(element, XML.Element(name: "element"))
+            expect(element == XML.Element(name: "element"))
         }
     }
 
@@ -91,7 +87,7 @@ class XMLDecodeTests: TestCase {
         scope {
             let stream = InputByteStream("<element>text</element>")
             let element = try XML.Element(from: stream)
-            assertEqual(element, XML.Element(
+            expect(element == XML.Element(
                 name: "element",
                 children: [.text("text")]))
         }
@@ -105,7 +101,7 @@ class XMLDecodeTests: TestCase {
                 </root>
                 """)
             let element = try XML.Element(from: stream)
-            assertEqual(element, XML.Element(
+            expect(element == XML.Element(
                 name: "root",
                 children: [.element(XML.Element(
                     name: "element",
@@ -124,7 +120,7 @@ class XMLDecodeTests: TestCase {
                 </root>
                 """)
             let element = try XML.Element(from: stream)
-            assertEqual(element, XML.Element(
+            expect(element == XML.Element(
                 name: "root",
                 children: [
                     .element(XML.Element(
@@ -141,7 +137,7 @@ class XMLDecodeTests: TestCase {
         scope {
             let stream = InputByteStream("<element name=\"value\"/>")
             let element = try XML.Element(from: stream)
-            assertEqual(element, XML.Element(
+            expect(element == XML.Element(
                 name: "element",
                 attributes: ["name" : "value"]
             ))
@@ -153,7 +149,7 @@ class XMLDecodeTests: TestCase {
             let stream = InputByteStream(
                 "<element name=\"value\">text</element>")
             let element = try XML.Element(from: stream)
-            assertEqual(element, XML.Element(
+            expect(element == XML.Element(
                 name: "element",
                 attributes: ["name" : "value"],
                 children: [.text("text")]

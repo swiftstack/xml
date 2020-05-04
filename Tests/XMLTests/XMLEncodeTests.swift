@@ -33,7 +33,7 @@ class XMLEncodeTests: TestCase {
 
             let stream = OutputByteStream()
             try document.encode(to: stream)
-            assertEqual(stream.string, xml)
+            expect(stream.string == xml)
         }
     }
 
@@ -45,7 +45,7 @@ class XMLEncodeTests: TestCase {
 
             let stream = OutputByteStream()
             try element.encode(to: stream)
-            assertEqual(stream.string, xml)
+            expect(stream.string == xml)
         }
     }
 
@@ -59,7 +59,7 @@ class XMLEncodeTests: TestCase {
 
             let stream = OutputByteStream()
             try element.encode(to: stream)
-            assertEqual(stream.string, xml)
+            expect(stream.string == xml)
         }
     }
 
@@ -76,7 +76,7 @@ class XMLEncodeTests: TestCase {
 
             let stream = OutputByteStream()
             try element.encode(to: stream)
-            assertEqual(stream.string, xml)
+            expect(stream.string == xml)
         }
     }
 
@@ -102,7 +102,7 @@ class XMLEncodeTests: TestCase {
 
             let stream = OutputByteStream()
             try element.encode(to: stream)
-            assertEqual(stream.string, xml)
+            expect(stream.string == xml)
         }
     }
 
@@ -116,7 +116,7 @@ class XMLEncodeTests: TestCase {
 
             let stream = OutputByteStream()
             try element.encode(to: stream)
-            assertEqual(stream.string, xml)
+            expect(stream.string == xml)
         }
     }
 
@@ -131,7 +131,7 @@ class XMLEncodeTests: TestCase {
 
             let stream = OutputByteStream()
             try element.encode(to: stream)
-            assertEqual(stream.string, xml)
+            expect(stream.string == xml)
         }
     }
 }

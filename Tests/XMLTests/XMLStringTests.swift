@@ -9,14 +9,14 @@ class XMLStringTests: TestCase {
 
             """
 
-        assertEqual(document.xml, expected)
-        assertEqual(document.xmlCompact[...], expected.dropLast())
+        expect(document.xml == expected)
+        expect(document.xmlCompact[...] == expected.dropLast())
     }
 
     func testElement() {
         let element = XML.Element(name: "element")
-        assertEqual(element.xml, "<element/>\n")
-        assertEqual(element.xmlCompact, "<element/>")
+        expect(element.xml == "<element/>\n")
+        expect(element.xmlCompact == "<element/>")
     }
 
     func testAttributes() {
@@ -24,16 +24,16 @@ class XMLStringTests: TestCase {
             name: "element",
             attributes: ["name" : "value"])
 
-        assertEqual(element.xml, "<element name=\"value\"/>\n")
-        assertEqual(element.xmlCompact, "<element name=\"value\"/>")
+        expect(element.xml == "<element name=\"value\"/>\n")
+        expect(element.xmlCompact == "<element name=\"value\"/>")
     }
 
     func testTextChildren() {
         let element = XML.Element(name: "element", children: [
             .text("text")
         ])
-        assertEqual(element.xml, "<element>text</element>\n")
-        assertEqual(element.xmlCompact, "<element>text</element>")
+        expect(element.xml == "<element>text</element>\n")
+        expect(element.xmlCompact == "<element>text</element>")
     }
 
     func testElementChildren() {
@@ -51,8 +51,8 @@ class XMLStringTests: TestCase {
             </root>
 
             """
-        assertEqual(element.xml, expected)
-        assertEqual(element.xmlCompact, "<root><element>text</element></root>")
+        expect(element.xml == expected)
+        expect(element.xmlCompact == "<root><element>text</element></root>")
     }
 
     func testElementChildrens() {
@@ -90,12 +90,12 @@ class XMLStringTests: TestCase {
             </root>
 
             """
-        assertEqual(element.xml, expected)
+        expect(element.xml == expected)
 
         let expectedCompact =
             "<root><element>text</element><element1>text1</element1>" +
             "<element2><element3>text3</element3></element2></root>"
-        assertEqual(element.xmlCompact, expectedCompact)
+        expect(element.xmlCompact == expectedCompact)
     }
 
     func testCrazyChildrens() {
@@ -120,9 +120,9 @@ class XMLStringTests: TestCase {
             </root>
 
             """
-        assertEqual(element.xml, expected)
+        expect(element.xml == expected)
 
         let expectedCompact = "<root>text<element1>text1</element1>text2</root>"
-        assertEqual(element.xmlCompact, expectedCompact)
+        expect(element.xmlCompact == expectedCompact)
     }
 }
