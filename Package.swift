@@ -19,14 +19,32 @@ let package = Package(
             swiftSettings: [
                 .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
             ]),
-        .testTarget(
-            name: "XMLTests",
-            dependencies: ["XML", "Test"],
-            swiftSettings: [
-                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
-            ]),
     ]
 )
+
+// MARK: - tests
+
+testTarget("XML") { test in
+    test("Decode")
+    test("Encode")
+    test("String")
+    test("XML")
+}
+
+func testTarget(_ target: String, task: ((String) -> Void) -> Void) {
+    task { test in addTest(target: target, name: test) }
+}
+
+func addTest(target: String, name: String) {
+    package.targets.append(
+        .executableTarget(
+            name: "Tests/\(target)/\(name)",
+            dependencies: ["XML", "Test"],
+            path: "Tests/\(target)/\(name)",
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
+            ]))
+}
 
 // MARK: - custom package source
 
