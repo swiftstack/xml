@@ -15,10 +15,16 @@ let package = Package(
     targets: [
         .target(
             name: "XML",
-            dependencies: ["Stream"]),
+            dependencies: ["Stream"],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
+            ]),
         .testTarget(
             name: "XMLTests",
-            dependencies: ["XML", "Test"]),
+            dependencies: ["XML", "Test"],
+            swiftSettings: [
+                .unsafeFlags(["-Xfrontend", "-enable-experimental-concurrency"])
+            ]),
     ]
 )
 
