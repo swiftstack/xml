@@ -1,49 +1,51 @@
 import Stream
 
 extension XML.Document {
-    public init<T: StreamReader>(from stream: T) throws {
-        try stream.consumeWhitespaces(includingNewLine: true)
+    public static func decode<T: StreamReader>(from stream: T) async throws -> XML.Document {
+        var document = XML.Document()
+        try await stream.consumeWhitespaces(includingNewLine: true)
 
-        guard try stream.consume(sequence: Constants.xmlHeaderStart) else {
+        guard try await stream.consume(sequence: Constants.xmlHeaderStart) else {
             throw XML.Error.invalidXmlHeader
         }
 
-        try stream.consumeWhitespaces(includingNewLine: true)
+        try await stream.consumeWhitespaces(includingNewLine: true)
 
-        while try stream.peek() != .questionMark {
-            try consumeAttribute(try Attribute(from: stream))
-            try stream.consumeWhitespaces(includingNewLine: true)
+        while try await stream.peek() != .questionMark {
+            try await consumeAttribute(try await Attribute.decode(from: stream), document: &document)
+            try await stream.consumeWhitespaces(includingNewLine: true)
         }
 
-        guard try stream.consume(sequence: Constants.xmlHeaderEnd) else {
+        guard try await stream.consume(sequence: Constants.xmlHeaderEnd) else {
             throw XML.Error.invalidXmlHeader
         }
 
-        try stream.consumeWhitespaces(includingNewLine: true)
+        try await stream.consumeWhitespaces(includingNewLine: true)
 
-        self.root = try XML.Element(from: stream)
+        document.root = try await .decode(from: stream)
+        return document
     }
 
-    mutating func consumeAttribute(_ attribute: Attribute) throws {
+    static func consumeAttribute(_ attribute: Attribute, document: inout XML.Document) async throws {
         switch attribute.name {
-        case "version": self.version = attribute.value
-        case "encoding": self.encoding = try .init(from: attribute.value)
-        case "standalone": self.standalone = try .init(from: attribute.value)
+        case "version": document.version = attribute.value
+        case "encoding": document.encoding = try .init(from: attribute.value)
+        case "standalone": document.standalone = try .init(from: attribute.value)
         default: break
         }
     }
 }
 
 extension XML.Node {
-    public init<T: StreamReader>(from stream: T) throws {
-        switch try stream.peek() {
-        case .angleBracketOpen: self = .element(try .init(from: stream))
-        default: self = .text(try XML.Node.readText(from: stream))
+    public static func decode<T: StreamReader>(from stream: T) async throws -> XML.Node {
+        switch try await stream.peek() {
+        case .angleBracketOpen: return .element(try await .decode(from: stream))
+        default: return .text(try await XML.Node.readText(from: stream))
         }
     }
 
-    static func readText<T: StreamReader>(from stream: T) throws -> String {
-        return try stream.read(until: .angleBracketOpen) { bytes in
+    static func readText<T: StreamReader>(from stream: T) async throws -> String {
+        return try await stream.read(until: .angleBracketOpen) { bytes in
             return String(decoding: bytes.trimEnd(), as: UTF8.self)
         }
     }
@@ -53,15 +55,15 @@ extension XML.Element {
     struct Name: Equatable {
         let value: String
 
-        init?<T: StreamReader>(from stream: T) throws {
-            guard let value = try Name.read(from: stream) else {
+        static func decode<T: StreamReader>(from stream: T) async throws -> XML.Element.Name? {
+            guard let value = try await Name.read(from: stream) else {
                 return nil
             }
-            self.value = value
+            return .init(value: value)
         }
 
-        static func read<T: StreamReader>(from stream: T) throws -> String? {
-            return try stream.read(allowedBytes: .xmlName) { bytes in
+        static func read<T: StreamReader>(from stream: T) async throws -> String? {
+            return try await stream.read(allowedBytes: .xmlName) { bytes in
                 guard bytes.count > 0 else {
                     return nil
                 }
@@ -70,55 +72,50 @@ extension XML.Element {
         }
     }
 
-    public init<T: StreamReader>(from stream: T) throws {
-        guard try stream.consume(.angleBracketOpen) else {
+    public static func decode<T: StreamReader>(from stream: T) async throws -> XML.Element {
+        guard try await stream.consume(.angleBracketOpen) else {
             throw XML.Error.invalidOpeningTag
         }
-        guard let name = try Name(from: stream) else {
+        guard let name = try await Name.decode(from: stream) else {
             throw XML.Error.invalidOpeningTagName
         }
-        try stream.consumeWhitespaces(includingNewLine: true)
+        try await stream.consumeWhitespaces(includingNewLine: true)
 
-        let attributes = try Attributes(from: stream)
+        let attributes = try await Attributes.decode(from: stream)
 
         // check for self-closing tag
-        if try stream.consume(.slash) {
-            guard try stream.consume(.angleBracketClose) else {
+        if try await stream.consume(.slash) {
+            guard try await stream.consume(.angleBracketClose) else {
                 throw XML.Error.invalidSelfClosingTag
             }
-            self.name = name.value
-            self.attributes = attributes.values
-            self.children = []
-            return
+            return .init(name: name.value, attributes: attributes.values, children: [])
         }
 
         // closing bracket
-        guard try stream.consume(.angleBracketClose) else {
+        guard try await stream.consume(.angleBracketClose) else {
             throw XML.Error.invalidOpeningTag
         }
 
         // read children
         var children = [XML.Node]()
-        try stream.consumeWhitespaces(includingNewLine: true)
-        while !(try stream.consume(sequence: [.angleBracketOpen, .slash])) {
-            children.append(try XML.Node(from: stream))
-            try stream.consumeWhitespaces(includingNewLine: true)
+        try await stream.consumeWhitespaces(includingNewLine: true)
+        while !(try await stream.consume(sequence: [.angleBracketOpen, .slash])) {
+            children.append(try await XML.Node.decode(from: stream))
+            try await stream.consumeWhitespaces(includingNewLine: true)
         }
 
         // read closing tag
-        guard let closingName = try Name(from: stream) else {
+        guard let closingName = try await Name.decode(from: stream) else {
             throw XML.Error.invalidClosingTagName
         }
-        guard try stream.consume(.angleBracketClose) else {
+        guard try await stream.consume(.angleBracketClose) else {
             throw XML.Error.invalidClosingTag
         }
         guard closingName == name else {
             throw XML.Error.invalidClosingTagNameMismatch
         }
-        
-        self.name = name.value
-        self.attributes = attributes.values
-        self.children = children
+
+        return .init(name: name.value, attributes: attributes.values, children: children)
     }
 }
 
@@ -150,23 +147,23 @@ struct Attributes {
         set { values[name] = newValue }
     }
 
-    init<T: StreamReader>(from stream: T) throws {
-        func isClosingTag() throws -> Bool {
-            switch try stream.peek() {
+    static func decode<T: StreamReader>(from stream: T) async throws -> Attributes {
+        func isClosingTag() async throws -> Bool {
+            switch try await stream.peek() {
             case .slash, .angleBracketClose: return true
             default: return false
             }
         }
         var attributes = [String : String]()
-        while !(try isClosingTag()) {
-            let attribute = try Attribute(from: stream)
+        while !(try await isClosingTag()) {
+            let attribute = try await Attribute.decode(from: stream)
             guard attributes[attribute.name] == nil else {
                 throw XML.Error.duplicateAttribute
             }
             attributes[attribute.name] = attribute.value
-            try stream.consumeWhitespaces(includingNewLine: true)
+            try await stream.consumeWhitespaces(includingNewLine: true)
         }
-        self.values = attributes
+        return .init(values: attributes)
     }
 }
 
@@ -174,16 +171,17 @@ struct Attribute {
     let name: String
     let value: String
 
-    init<T: StreamReader>(from stream: T) throws {
-        self.name = try Attribute.readName(from: stream)
-        guard try stream.consume(.equal) else {
+    static func decode<T: StreamReader>(from stream: T) async throws -> Attribute {
+        let name = try await Attribute.readName(from: stream)
+        guard try await stream.consume(.equal) else {
             throw XML.Error.invalidAttribute
         }
-        self.value = try Attribute.readValue(from: stream)
+        let value = try await Attribute.readValue(from: stream)
+        return .init(name: name, value: value)
     }
 
-    static func readName<T: StreamReader>(from stream: T) throws -> String {
-        return try stream.read(allowedBytes: .xmlName) { bytes in
+    static func readName<T: StreamReader>(from stream: T) async throws -> String {
+        return try await stream.read(allowedBytes: .xmlName) { bytes in
             guard bytes.count > 0 else {
                 throw XML.Error.invalidAttributeName
             }
@@ -191,14 +189,14 @@ struct Attribute {
         }
     }
 
-    static func readValue<T: StreamReader>(from stream: T) throws -> String {
-        guard try stream.consume(.doubleQuote) else {
+    static func readValue<T: StreamReader>(from stream: T) async throws -> String {
+        guard try await stream.consume(.doubleQuote) else {
             throw XML.Error.invalidAttributeValue
         }
-        let value = try stream.read(allowedBytes: .xmlName) { bytes in
+        let value = try await stream.read(allowedBytes: .xmlName) { bytes in
             return String(decoding: bytes, as: UTF8.self)
         }
-        guard try stream.consume(.doubleQuote) else {
+        guard try await stream.consume(.doubleQuote) else {
             throw XML.Error.invalidAttributeValue
         }
         return value
@@ -206,10 +204,10 @@ struct Attribute {
 }
 
 extension StreamReader {
-    func consumeWhitespaces(includingNewLine: Bool = false) throws {
+    func consumeWhitespaces(includingNewLine: Bool = false) async throws {
         switch includingNewLine {
-        case true: try consume(while: { $0.isNewLineOrWhitespace })
-        case false: try consume(while: { $0 == .whitespace })
+        case true: try await consume(while: { $0.isNewLineOrWhitespace })
+        case false: try await consume(while: { $0 == .whitespace })
         }
     }
 }
