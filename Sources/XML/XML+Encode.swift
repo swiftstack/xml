@@ -3,8 +3,8 @@ import Stream
 // TODO: Implement and benchmark raw encoder
 
 extension XML.Document {
-    public func encode<T: StreamWriter>(
-        to stream: T,
+    public func encode(
+        to stream: StreamWriter,
         format: Format = .compact
     ) async throws {
         var xml = ""
