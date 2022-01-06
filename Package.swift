@@ -10,7 +10,7 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Stream"),
-        .package(name: "Test")
+        .package(name: "Test"),
     ],
     targets: [
         .target(
