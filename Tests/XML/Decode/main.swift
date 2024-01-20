@@ -119,7 +119,7 @@ test("SelfElementAttributes") {
     let element = try await XML.Element.decode(from: stream)
     expect(element == XML.Element(
         name: "element",
-        attributes: ["name" : "value"]
+        attributes: ["name": "value"]
     ))
 }
 
@@ -129,7 +129,7 @@ test("TextElementAttributes") {
     let element = try await XML.Element.decode(from: stream)
     expect(element == XML.Element(
         name: "element",
-        attributes: ["name" : "value"],
+        attributes: ["name": "value"],
         children: [.text("text")]
     ))
 }

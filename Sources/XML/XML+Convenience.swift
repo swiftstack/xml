@@ -41,15 +41,13 @@ extension XML.Element {
     }
 
     public subscript(_ name: String) -> XML.Node? {
-        get {
-            return self.children.first(where: { node in
-                guard let element = XML.Element(node),
-                    element.name == name else {
-                        return false
-                }
-                return true
-            })
-        }
+        self.children.first(where: { node in
+            guard let element = XML.Element(node),
+                element.name == name else {
+                    return false
+            }
+            return true
+        })
     }
 
     public init?(_ node: XML.Node) {
@@ -66,7 +64,7 @@ extension XML.Element {
         self.init(node)
     }
 
-    public init(name: String, attributes: [String : String], value: String) {
+    public init(name: String, attributes: [String: String], value: String) {
         self.name = name
         self.attributes = attributes
         self.children = [.text(value)]
@@ -89,18 +87,16 @@ extension XML.Node {
     }
 
     public subscript(_ name: String) -> XML.Node? {
-        get {
-            guard let element = XML.Element(self) else {
-                return nil
-            }
-            return element.children.first(where: { node in
-                guard let element = XML.Element(node),
-                    element.name == name else {
-                        return false
-                }
-                return true
-            })
+        guard let element = XML.Element(self) else {
+            return nil
         }
+        return element.children.first(where: { node in
+            guard let element = XML.Element(node),
+                element.name == name else {
+                    return false
+            }
+            return true
+        })
     }
 }
 
@@ -120,12 +116,10 @@ extension Optional where Wrapped == XML.Node {
     }
 
     public subscript(_ name: String) -> XML.Node? {
-        get {
-            guard let node = self else {
-                return nil
-            }
-            return node[name]
+        guard let node = self else {
+            return nil
         }
+        return node[name]
     }
 }
 

@@ -92,7 +92,7 @@ test("ElementChildren") {
 test("SelfElementAttributes") {
     let element = XML.Element(
         name: "element",
-        attributes: ["name" : "value"])
+        attributes: ["name": "value"])
 
     let xml = "<element name=\"value\"/>"
 
@@ -104,7 +104,7 @@ test("SelfElementAttributes") {
 test("TextElementAttributes") {
     let element = XML.Element(
         name: "element",
-        attributes: ["name" : "value"],
+        attributes: ["name": "value"],
         children: [.text("text")])
 
     let xml = "<element name=\"value\">text</element>"

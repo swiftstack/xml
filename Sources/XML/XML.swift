@@ -13,11 +13,11 @@ public struct XML {
     }
 
     public struct Document {
-        public var version: String? = nil
-        public var encoding: Encoding? = nil
-        public var standalone: Standalone? = nil
+        public var version: String?
+        public var encoding: Encoding?
+        public var standalone: Standalone?
 
-        public var root: Element? = nil
+        public var root: Element?
 
         public init(
             root: Element? = nil,
@@ -34,12 +34,12 @@ public struct XML {
 
     public struct Element {
         public var name: String
-        public var attributes: [String : String]
+        public var attributes: [String: String]
         public var children: [Node]
 
         public init(
             name: String,
-            attributes: [String : String] = [:],
+            attributes: [String: String] = [:],
             children: [Node] = []
         ) {
             self.name = name

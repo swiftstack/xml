@@ -21,7 +21,7 @@ test("Element") {
 test("Attributes") {
     let element = XML.Element(
         name: "element",
-        attributes: ["name" : "value"])
+        attributes: ["name": "value"])
 
     expect(element.xml == "<element name=\"value\"/>\n")
     expect(element.xmlCompact == "<element name=\"value\"/>")

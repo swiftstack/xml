@@ -1,18 +1,23 @@
 import Stream
 
 extension XML.Document {
-    public static func decode(from stream: StreamReader) async throws -> XML.Document {
+    public static func decode(
+        from stream: StreamReader
+    ) async throws -> XML.Document {
         var document = XML.Document()
         try await stream.consumeWhitespaces(includingNewLine: true)
 
-        guard try await stream.consume(sequence: Constants.xmlHeaderStart) else {
+        guard
+            try await stream.consume(sequence: Constants.xmlHeaderStart)
+        else {
             throw XML.Error.invalidXmlHeader
         }
 
         try await stream.consumeWhitespaces(includingNewLine: true)
 
         while try await stream.peek() != .questionMark {
-            try await consumeAttribute(try await Attribute.decode(from: stream), document: &document)
+            let attribute = try await Attribute.decode(from: stream)
+            try await consumeAttribute(attribute, document: &document)
             try await stream.consumeWhitespaces(includingNewLine: true)
         }
 
@@ -26,18 +31,26 @@ extension XML.Document {
         return document
     }
 
-    static func consumeAttribute(_ attribute: Attribute, document: inout XML.Document) async throws {
+    static func consumeAttribute(
+        _ attribute: Attribute,
+        document: inout XML.Document
+    ) async throws {
         switch attribute.name {
-        case "version": document.version = attribute.value
-        case "encoding": document.encoding = try .init(from: attribute.value)
-        case "standalone": document.standalone = try .init(from: attribute.value)
+        case "version":
+            document.version = attribute.value
+        case "encoding":
+            document.encoding = try .init(from: attribute.value)
+        case "standalone":
+            document.standalone = try .init(from: attribute.value)
         default: break
         }
     }
 }
 
 extension XML.Node {
-    public static func decode(from stream: StreamReader) async throws -> XML.Node {
+    public static func decode(
+        from stream: StreamReader
+    ) async throws -> XML.Node {
         switch try await stream.peek() {
         case .angleBracketOpen: return .element(try await .decode(from: stream))
         default: return .text(try await XML.Node.readText(from: stream))
@@ -55,7 +68,9 @@ extension XML.Element {
     struct Name: Equatable {
         let value: String
 
-        static func decode(from stream: StreamReader) async throws -> XML.Element.Name? {
+        static func decode(
+            from stream: StreamReader
+        ) async throws -> XML.Element.Name? {
             guard let value = try await Name.read(from: stream) else {
                 return nil
             }
@@ -72,7 +87,9 @@ extension XML.Element {
         }
     }
 
-    public static func decode(from stream: StreamReader) async throws -> XML.Element {
+    public static func decode(
+        from stream: StreamReader
+    ) async throws -> XML.Element {
         guard try await stream.consume(.angleBracketOpen) else {
             throw XML.Error.invalidOpeningTag
         }
@@ -88,7 +105,10 @@ extension XML.Element {
             guard try await stream.consume(.angleBracketClose) else {
                 throw XML.Error.invalidSelfClosingTag
             }
-            return .init(name: name.value, attributes: attributes.values, children: [])
+            return .init(
+                name: name.value,
+                attributes: attributes.values,
+                children: [])
         }
 
         // closing bracket
@@ -99,7 +119,9 @@ extension XML.Element {
         // read children
         var children = [XML.Node]()
         try await stream.consumeWhitespaces(includingNewLine: true)
-        while !(try await stream.consume(sequence: [.angleBracketOpen, .slash])) {
+        while !(
+            try await stream.consume(sequence: [.angleBracketOpen, .slash])
+        ) {
             children.append(try await XML.Node.decode(from: stream))
             try await stream.consumeWhitespaces(includingNewLine: true)
         }
@@ -115,7 +137,10 @@ extension XML.Element {
             throw XML.Error.invalidClosingTagNameMismatch
         }
 
-        return .init(name: name.value, attributes: attributes.values, children: children)
+        return .init(
+            name: name.value,
+            attributes: attributes.values,
+            children: children)
     }
 }
 
@@ -140,7 +165,7 @@ extension XML.Standalone {
 }
 
 struct Attributes {
-    var values: [String : String]
+    var values: [String: String]
 
     subscript(_ name: String) -> String? {
         get { return values[name] }
@@ -154,7 +179,7 @@ struct Attributes {
             default: return false
             }
         }
-        var attributes = [String : String]()
+        var attributes = [String: String]()
         while !(try await isClosingTag()) {
             let attribute = try await Attribute.decode(from: stream)
             guard attributes[attribute.name] == nil else {
