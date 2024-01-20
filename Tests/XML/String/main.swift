@@ -1,7 +1,7 @@
 import Test
 @testable import XML
 
-test.case("Document") {
+test("Document") {
     let document = XML.Document()
     let expected = """
         <?xml version="1.0" encoding="utf-8" standalone="no"?>
@@ -12,13 +12,13 @@ test.case("Document") {
     expect(document.xmlCompact[...] == expected.dropLast())
 }
 
-test.case("Element") {
+test("Element") {
     let element = XML.Element(name: "element")
     expect(element.xml == "<element/>\n")
     expect(element.xmlCompact == "<element/>")
 }
 
-test.case("Attributes") {
+test("Attributes") {
     let element = XML.Element(
         name: "element",
         attributes: ["name" : "value"])
@@ -27,7 +27,7 @@ test.case("Attributes") {
     expect(element.xmlCompact == "<element name=\"value\"/>")
 }
 
-test.case("TextChildren") {
+test("TextChildren") {
     let element = XML.Element(name: "element", children: [
         .text("text")
     ])
@@ -35,7 +35,7 @@ test.case("TextChildren") {
     expect(element.xmlCompact == "<element>text</element>")
 }
 
-test.case("ElementChildren") {
+test("ElementChildren") {
     let element = XML.Element(name: "root", children: [
         .element(
             XML.Element(
@@ -54,7 +54,7 @@ test.case("ElementChildren") {
     expect(element.xmlCompact == "<root><element>text</element></root>")
 }
 
-test.case("ElementChildrens") {
+test("ElementChildrens") {
     let element = XML.Element(name: "root", children: [
         .element(
             XML.Element(
@@ -97,7 +97,7 @@ test.case("ElementChildrens") {
     expect(element.xmlCompact == expectedCompact)
 }
 
-test.case("CrazyChildrens") {
+test("CrazyChildrens") {
     let element = XML.Element(
         name: "root",
         children: [
@@ -125,4 +125,4 @@ test.case("CrazyChildrens") {
     expect(element.xmlCompact == expectedCompact)
 }
 
-test.run()
+await run()

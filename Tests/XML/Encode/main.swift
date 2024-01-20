@@ -2,7 +2,7 @@ import Test
 import Stream
 @testable import XML
 
-test.case("Document") {
+test("Document") {
     let root = XML.Element(
         name: "root",
         children: [
@@ -28,7 +28,7 @@ test.case("Document") {
     expect(stream.stringValue == xml)
 }
 
-test.case("SelfElement") {
+test("SelfElement") {
     let element = XML.Element(name: "element")
 
     let xml = "<element/>"
@@ -38,7 +38,7 @@ test.case("SelfElement") {
     expect(stream.stringValue == xml)
 }
 
-test.case("TextElement") {
+test("TextElement") {
     let element = XML.Element(
         name: "element",
         children: [.text("text")])
@@ -50,7 +50,7 @@ test.case("TextElement") {
     expect(stream.stringValue == xml)
 }
 
-test.case("Element") {
+test("Element") {
     let element = XML.Element(
         name: "root",
         children: [.element(XML.Element(
@@ -65,7 +65,7 @@ test.case("Element") {
     expect(stream.stringValue == xml)
 }
 
-test.case("ElementChildren") {
+test("ElementChildren") {
     let element = XML.Element(
         name: "root",
         children: [
@@ -89,7 +89,7 @@ test.case("ElementChildren") {
     expect(stream.stringValue == xml)
 }
 
-test.case("SelfElementAttributes") {
+test("SelfElementAttributes") {
     let element = XML.Element(
         name: "element",
         attributes: ["name" : "value"])
@@ -101,7 +101,7 @@ test.case("SelfElementAttributes") {
     expect(stream.stringValue == xml)
 }
 
-test.case("TextElementAttributes") {
+test("TextElementAttributes") {
     let element = XML.Element(
         name: "element",
         attributes: ["name" : "value"],
@@ -114,4 +114,4 @@ test.case("TextElementAttributes") {
     expect(stream.stringValue == xml)
 }
 
-test.run()
+await run()

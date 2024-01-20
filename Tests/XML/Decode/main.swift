@@ -2,7 +2,7 @@ import Test
 import Stream
 @testable import XML
 
-test.case("Document") {
+test("Document") {
     let stream = InputByteStream("""
         <?xml version="1.0" encoding="utf-8" standalone="no"?>
         <root>
@@ -23,7 +23,7 @@ test.case("Document") {
         ]))
 }
 
-test.case("UppercasedHeader") {
+test("UppercasedHeader") {
     let stream = InputByteStream("""
         <?xml version="1.0" encoding="UTF-8" standalone="NO"?>
         <root></root>
@@ -37,16 +37,16 @@ test.case("UppercasedHeader") {
     expect(document.root == XML.Element(name: "root"))
 }
 
-test.case("Node") {
+test("Node") {
     _ = try await XML.Node.decode(from: InputByteStream("<element/>"))
 }
 
-test.case("NodeElement") {
+test("NodeElement") {
     let node = try await XML.Node.decode(from: InputByteStream("<element/>"))
     expect(node == .element(.init(name: "element")))
 }
 
-test.case("NodeText") {
+test("NodeText") {
     let stream = InputByteStream("""
         <root>
             text start
@@ -64,13 +64,13 @@ test.case("NodeText") {
         ])))
 }
 
-test.case("SelfElement") {
+test("SelfElement") {
     let stream = InputByteStream("<element/>")
     let element = try await XML.Element.decode(from: stream)
     expect(element == XML.Element(name: "element"))
 }
 
-test.case("TextElement") {
+test("TextElement") {
     let stream = InputByteStream("<element>text</element>")
     let element = try await XML.Element.decode(from: stream)
     expect(element == XML.Element(
@@ -78,7 +78,7 @@ test.case("TextElement") {
         children: [.text("text")]))
 }
 
-test.case("Element") {
+test("Element") {
     let stream = InputByteStream("""
         <root>
             <element>text</element>
@@ -93,7 +93,7 @@ test.case("Element") {
         ]))
 }
 
-test.case("ElementChildren") {
+test("ElementChildren") {
     let stream = InputByteStream("""
         <root>
             <element>text</element>
@@ -114,7 +114,7 @@ test.case("ElementChildren") {
         ]))
 }
 
-test.case("SelfElementAttributes") {
+test("SelfElementAttributes") {
     let stream = InputByteStream("<element name=\"value\"/>")
     let element = try await XML.Element.decode(from: stream)
     expect(element == XML.Element(
@@ -123,7 +123,7 @@ test.case("SelfElementAttributes") {
     ))
 }
 
-test.case("TextElementAttributes") {
+test("TextElementAttributes") {
     let stream = InputByteStream(
         "<element name=\"value\">text</element>")
     let element = try await XML.Element.decode(from: stream)
@@ -134,4 +134,4 @@ test.case("TextElementAttributes") {
     ))
 }
 
-test.run()
+await run()
