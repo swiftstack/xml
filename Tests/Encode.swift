@@ -1,8 +1,9 @@
-import Test
+import Testing
 import Stream
 @testable import XML
 
-test("Document") {
+@Test("Encode Document")
+func encodeDocument() async throws {
     let root = XML.Element(
         name: "root",
         children: [
@@ -25,20 +26,22 @@ test("Document") {
 
     let stream = OutputByteStream()
     try await document.encode(to: stream)
-    expect(stream.stringValue == xml)
+    #expect(stream.stringValue == xml)
 }
 
-test("SelfElement") {
+@Test("Encode SelfElement")
+func encodeSelfElement() async throws {
     let element = XML.Element(name: "element")
 
     let xml = "<element/>"
 
     let stream = OutputByteStream()
     try await element.encode(to: stream)
-    expect(stream.stringValue == xml)
+    #expect(stream.stringValue == xml)
 }
 
-test("TextElement") {
+@Test("Encode TextElement")
+func encodeTextElement() async throws {
     let element = XML.Element(
         name: "element",
         children: [.text("text")])
@@ -47,10 +50,11 @@ test("TextElement") {
 
     let stream = OutputByteStream()
     try await element.encode(to: stream)
-    expect(stream.stringValue == xml)
+    #expect(stream.stringValue == xml)
 }
 
-test("Element") {
+@Test("Encode Element")
+func encodeElement() async throws {
     let element = XML.Element(
         name: "root",
         children: [.element(XML.Element(
@@ -62,10 +66,11 @@ test("Element") {
 
     let stream = OutputByteStream()
     try await element.encode(to: stream)
-    expect(stream.stringValue == xml)
+    #expect(stream.stringValue == xml)
 }
 
-test("ElementChildren") {
+@Test("Encode ElementChildren")
+func encodeElementChildren() async throws {
     let element = XML.Element(
         name: "root",
         children: [
@@ -86,10 +91,11 @@ test("ElementChildren") {
 
     let stream = OutputByteStream()
     try await element.encode(to: stream)
-    expect(stream.stringValue == xml)
+    #expect(stream.stringValue == xml)
 }
 
-test("SelfElementAttributes") {
+@Test("Encode SelfElementAttributes")
+func encodeSelfElementAttributes() async throws {
     let element = XML.Element(
         name: "element",
         attributes: ["name": "value"])
@@ -98,10 +104,11 @@ test("SelfElementAttributes") {
 
     let stream = OutputByteStream()
     try await element.encode(to: stream)
-    expect(stream.stringValue == xml)
+    #expect(stream.stringValue == xml)
 }
 
-test("TextElementAttributes") {
+@Test("Encode TextElementAttributes")
+func encodeTextElementAttributes() async throws {
     let element = XML.Element(
         name: "element",
         attributes: ["name": "value"],
@@ -111,7 +118,5 @@ test("TextElementAttributes") {
 
     let stream = OutputByteStream()
     try await element.encode(to: stream)
-    expect(stream.stringValue == xml)
+    #expect(stream.stringValue == xml)
 }
-
-await run()

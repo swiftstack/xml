@@ -1,41 +1,46 @@
-import Test
+import Testing
 @testable import XML
 
-test("Document") {
+@Test("String Document")
+func stringDocument() async throws {
     let document = XML.Document()
     let expected = """
         <?xml version="1.0" encoding="utf-8" standalone="no"?>
 
         """
 
-    expect(document.xml == expected)
-    expect(document.xmlCompact[...] == expected.dropLast())
+    #expect(document.xml == expected)
+    #expect(document.xmlCompact[...] == expected.dropLast())
 }
 
-test("Element") {
+@Test("String Element")
+func stringElement() async throws {
     let element = XML.Element(name: "element")
-    expect(element.xml == "<element/>\n")
-    expect(element.xmlCompact == "<element/>")
+    #expect(element.xml == "<element/>\n")
+    #expect(element.xmlCompact == "<element/>")
 }
 
-test("Attributes") {
+@Test("String Attributes")
+func stringAttributes() async throws {
     let element = XML.Element(
         name: "element",
         attributes: ["name": "value"])
 
-    expect(element.xml == "<element name=\"value\"/>\n")
-    expect(element.xmlCompact == "<element name=\"value\"/>")
+    #expect(element.xml == "<element name=\"value\"/>\n")
+    #expect(element.xmlCompact == "<element name=\"value\"/>")
 }
 
-test("TextChildren") {
+@Test("String TextChildren")
+func stringTextChildren() async throws {
     let element = XML.Element(name: "element", children: [
         .text("text")
     ])
-    expect(element.xml == "<element>text</element>\n")
-    expect(element.xmlCompact == "<element>text</element>")
+    #expect(element.xml == "<element>text</element>\n")
+    #expect(element.xmlCompact == "<element>text</element>")
 }
 
-test("ElementChildren") {
+@Test("String ElementChildren")
+func stringElementChildren() async throws {
     let element = XML.Element(name: "root", children: [
         .element(
             XML.Element(
@@ -50,11 +55,12 @@ test("ElementChildren") {
         </root>
 
         """
-    expect(element.xml == expected)
-    expect(element.xmlCompact == "<root><element>text</element></root>")
+    #expect(element.xml == expected)
+    #expect(element.xmlCompact == "<root><element>text</element></root>")
 }
 
-test("ElementChildrens") {
+@Test("String ElementChildrens")
+func stringElementChildrens() async throws {
     let element = XML.Element(name: "root", children: [
         .element(
             XML.Element(
@@ -89,15 +95,16 @@ test("ElementChildrens") {
         </root>
 
         """
-    expect(element.xml == expected)
+    #expect(element.xml == expected)
 
     let expectedCompact =
         "<root><element>text</element><element1>text1</element1>" +
         "<element2><element3>text3</element3></element2></root>"
-    expect(element.xmlCompact == expectedCompact)
+    #expect(element.xmlCompact == expectedCompact)
 }
 
-test("CrazyChildrens") {
+@Test("String CrazyChildrens")
+func stringCrazyChildrens() async throws {
     let element = XML.Element(
         name: "root",
         children: [
@@ -119,10 +126,8 @@ test("CrazyChildrens") {
         </root>
 
         """
-    expect(element.xml == expected)
+    #expect(element.xml == expected)
 
     let expectedCompact = "<root>text<element1>text1</element1>text2</root>"
-    expect(element.xmlCompact == expectedCompact)
+    #expect(element.xmlCompact == expectedCompact)
 }
-
-await run()

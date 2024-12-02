@@ -1,8 +1,9 @@
-import Test
+import Testing
 import Stream
 @testable import XML
 
-test("Document") {
+@Test("Decode Document")
+func decodeDocument() async throws {
     let stream = InputByteStream("""
         <?xml version="1.0" encoding="utf-8" standalone="no"?>
         <root>
@@ -11,10 +12,10 @@ test("Document") {
         """)
     let document = try await XML.Document.decode(from: stream)
 
-    expect(document.version == "1.0")
-    expect(document.encoding == .utf8)
-    expect(document.standalone == .no)
-    expect(document.root == XML.Element(
+    #expect(document.version == "1.0")
+    #expect(document.encoding == .utf8)
+    #expect(document.standalone == .no)
+    #expect(document.root == XML.Element(
         name: "root",
         children: [
             .element(XML.Element(
@@ -23,7 +24,8 @@ test("Document") {
         ]))
 }
 
-test("UppercasedHeader") {
+@Test("Decode UppercasedHeader")
+func decodeUppercasedHeader() async throws {
     let stream = InputByteStream("""
         <?xml version="1.0" encoding="UTF-8" standalone="NO"?>
         <root></root>
@@ -31,22 +33,25 @@ test("UppercasedHeader") {
         """)
     let document = try await XML.Document.decode(from: stream)
 
-    expect(document.version == "1.0")
-    expect(document.encoding == .utf8)
-    expect(document.standalone == .no)
-    expect(document.root == XML.Element(name: "root"))
+    #expect(document.version == "1.0")
+    #expect(document.encoding == .utf8)
+    #expect(document.standalone == .no)
+    #expect(document.root == XML.Element(name: "root"))
 }
 
-test("Node") {
+@Test("Decode Node")
+func decodeNode() async throws {
     _ = try await XML.Node.decode(from: InputByteStream("<element/>"))
 }
 
-test("NodeElement") {
+@Test("Decode NodeElement")
+func decodeNodeElement() async throws {
     let node = try await XML.Node.decode(from: InputByteStream("<element/>"))
-    expect(node == .element(.init(name: "element")))
+    #expect(node == .element(.init(name: "element")))
 }
 
-test("NodeText") {
+@Test("Decode NodeText")
+func decodeNodeText() async throws {
     let stream = InputByteStream("""
         <root>
             text start
@@ -55,7 +60,7 @@ test("NodeText") {
         </root>
         """)
     let node = try await XML.Node.decode(from: stream)
-    expect(node == .element(.init(
+    #expect(node == .element(.init(
         name: "root",
         children: [
             .text("text start"),
@@ -64,28 +69,31 @@ test("NodeText") {
         ])))
 }
 
-test("SelfElement") {
+@Test("Decode SelfElement")
+func decodeSelfElement() async throws {
     let stream = InputByteStream("<element/>")
     let element = try await XML.Element.decode(from: stream)
-    expect(element == XML.Element(name: "element"))
+    #expect(element == XML.Element(name: "element"))
 }
 
-test("TextElement") {
+@Test("Decode TextElement")
+func decodeTextElement() async throws {
     let stream = InputByteStream("<element>text</element>")
     let element = try await XML.Element.decode(from: stream)
-    expect(element == XML.Element(
+    #expect(element == XML.Element(
         name: "element",
         children: [.text("text")]))
 }
 
-test("Element") {
+@Test("Decode Element")
+func decodeElement() async throws {
     let stream = InputByteStream("""
         <root>
             <element>text</element>
         </root>
         """)
     let element = try await XML.Element.decode(from: stream)
-    expect(element == XML.Element(
+    #expect(element == XML.Element(
         name: "root",
         children: [.element(XML.Element(
             name: "element",
@@ -93,7 +101,8 @@ test("Element") {
         ]))
 }
 
-test("ElementChildren") {
+@Test("Decode ElementChildren")
+func decodeElementChildren() async throws {
     let stream = InputByteStream("""
         <root>
             <element>text</element>
@@ -102,7 +111,7 @@ test("ElementChildren") {
         </root>
         """)
     let element = try await XML.Element.decode(from: stream)
-    expect(element == XML.Element(
+    #expect(element == XML.Element(
         name: "root",
         children: [
             .element(XML.Element(
@@ -114,24 +123,24 @@ test("ElementChildren") {
         ]))
 }
 
-test("SelfElementAttributes") {
+@Test("Decode SelfElementAttributes")
+func decodeSelfElementAttributes() async throws {
     let stream = InputByteStream("<element name=\"value\"/>")
     let element = try await XML.Element.decode(from: stream)
-    expect(element == XML.Element(
+    #expect(element == XML.Element(
         name: "element",
         attributes: ["name": "value"]
     ))
 }
 
-test("TextElementAttributes") {
+@Test("Decode TextElementAttributes")
+func decodeTextElementAttributes() async throws {
     let stream = InputByteStream(
         "<element name=\"value\">text</element>")
     let element = try await XML.Element.decode(from: stream)
-    expect(element == XML.Element(
+    #expect(element == XML.Element(
         name: "element",
         attributes: ["name": "value"],
         children: [.text("text")]
     ))
 }
-
-await run()

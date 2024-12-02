@@ -14,12 +14,18 @@ let package = Package(
     ],
     dependencies: [
         .package(name: "Stream"),
-        .package(name: "Test"),
     ],
     targets: [
         .target(
             name: "XML",
             dependencies: [
+                .product(name: "Stream", package: "stream"),
+            ],
+            swiftSettings: swift6),
+        .testTarget(
+            name: "XMLTests",
+            dependencies: [
+                .target(name: "XML"),
                 .product(name: "Stream", package: "stream"),
             ],
             swiftSettings: swift6),
@@ -34,31 +40,6 @@ let swift6: [SwiftSetting] = [
     .enableUpcomingFeature("ImplicitOpenExistentials"),
     .enableUpcomingFeature("BareSlashRegexLiterals"),
 ]
-
-// MARK: - tests
-
-testTarget("XML") { test in
-    test("Decode")
-    test("Encode")
-    test("String")
-    test("XML")
-}
-
-func testTarget(_ target: String, task: ((String) -> Void) -> Void) {
-    task { test in addTest(target: target, name: test) }
-}
-
-func addTest(target: String, name: String) {
-    package.targets.append(
-        .executableTarget(
-            name: "Tests/\(target)/\(name)",
-            dependencies: [
-                .target(name: "XML"),
-                .product(name: "Test", package: "test"),
-            ],
-            path: "Tests/\(target)/\(name)",
-            swiftSettings: swift6))
-}
 
 // MARK: - custom package source
 
