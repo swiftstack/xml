@@ -16,12 +16,14 @@ let package = Package(
             targets: ["XML"]),
     ],
     dependencies: [
+        .package(name: "ASCII"),
         .package(name: "Stream"),
     ],
     targets: [
         .target(
             name: "XML",
             dependencies: [
+                .product(name: "ASCII", package: "ascii"),
                 .product(name: "Stream", package: "stream"),
             ],
             swiftSettings: [
