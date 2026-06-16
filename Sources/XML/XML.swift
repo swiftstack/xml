@@ -1,5 +1,5 @@
 public struct XML {
-    public enum Node {
+    public enum Node: Equatable {
         case element(Element)
         case text(String)
     }
@@ -12,7 +12,7 @@ public struct XML {
         case yes, no
     }
 
-    public struct Document {
+    public struct Document: Equatable {
         public var version: String?
         public var encoding: Encoding?
         public var standalone: Standalone?
@@ -32,7 +32,7 @@ public struct XML {
         }
     }
 
-    public struct Element {
+    public struct Element: Equatable {
         public var name: String
         public var attributes: [String: String]
         public var children: [Node]
@@ -45,24 +45,6 @@ public struct XML {
             self.name = name
             self.attributes = attributes
             self.children = children
-        }
-    }
-}
-
-extension XML.Element: Equatable {
-    public static func == (lhs: XML.Element, rhs: XML.Element) -> Bool {
-        return lhs.name == rhs.name
-            && lhs.attributes == rhs.attributes
-            && lhs.children == rhs.children
-    }
-}
-
-extension XML.Node: Equatable {
-    public static func == (lhs: XML.Node, rhs: XML.Node) -> Bool {
-        switch (lhs, rhs) {
-        case let (.element(lhs), .element(rhs)): return lhs == rhs
-        case let (.text(lhs), .text(rhs)): return lhs == rhs
-        default: return false
         }
     }
 }
