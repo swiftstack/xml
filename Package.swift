@@ -23,6 +23,9 @@ let package = Package(
             name: "XML",
             dependencies: [
                 .product(name: "Stream", package: "stream"),
+            ],
+            swiftSettings: [
+                .treatWarning("EmbeddedRestrictions", as: .error)
             ]),
         .testTarget(
             name: "XMLTests",
