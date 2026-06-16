@@ -24,7 +24,7 @@ func encodeDocument() async throws {
         "<element>text</element>" +
         "</root>"
 
-    let stream = OutputByteStream()
+    let stream = MemoryStream()
     try await document.encode(to: stream)
     #expect(stream.stringValue == xml)
 }
@@ -35,7 +35,7 @@ func encodeSelfElement() async throws {
 
     let xml = "<element/>"
 
-    let stream = OutputByteStream()
+    let stream = MemoryStream()
     try await element.encode(to: stream)
     #expect(stream.stringValue == xml)
 }
@@ -48,7 +48,7 @@ func encodeTextElement() async throws {
 
     let xml = "<element>text</element>"
 
-    let stream = OutputByteStream()
+    let stream = MemoryStream()
     try await element.encode(to: stream)
     #expect(stream.stringValue == xml)
 }
@@ -64,7 +64,7 @@ func encodeElement() async throws {
 
     let xml = "<root><element>text</element></root>"
 
-    let stream = OutputByteStream()
+    let stream = MemoryStream()
     try await element.encode(to: stream)
     #expect(stream.stringValue == xml)
 }
@@ -89,7 +89,7 @@ func encodeElementChildren() async throws {
         "<element3>text3</element3>" +
         "</root>"
 
-    let stream = OutputByteStream()
+    let stream = MemoryStream()
     try await element.encode(to: stream)
     #expect(stream.stringValue == xml)
 }
@@ -102,7 +102,7 @@ func encodeSelfElementAttributes() async throws {
 
     let xml = "<element name=\"value\"/>"
 
-    let stream = OutputByteStream()
+    let stream = MemoryStream()
     try await element.encode(to: stream)
     #expect(stream.stringValue == xml)
 }
@@ -116,7 +116,7 @@ func encodeTextElementAttributes() async throws {
 
     let xml = "<element name=\"value\">text</element>"
 
-    let stream = OutputByteStream()
+    let stream = MemoryStream()
     try await element.encode(to: stream)
     #expect(stream.stringValue == xml)
 }

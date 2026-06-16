@@ -4,7 +4,7 @@ import Stream
 
 @Test("Decode Document")
 func decodeDocument() async throws {
-    let stream = InputByteStream("""
+    let stream = MemoryStream("""
         <?xml version="1.0" encoding="utf-8" standalone="no"?>
         <root>
             <element>text</element>
@@ -26,7 +26,7 @@ func decodeDocument() async throws {
 
 @Test("Decode UppercasedHeader")
 func decodeUppercasedHeader() async throws {
-    let stream = InputByteStream("""
+    let stream = MemoryStream("""
         <?xml version="1.0" encoding="UTF-8" standalone="NO"?>
         <root></root>
 
@@ -41,18 +41,18 @@ func decodeUppercasedHeader() async throws {
 
 @Test("Decode Node")
 func decodeNode() async throws {
-    _ = try await XML.Node.decode(from: InputByteStream("<element/>"))
+    _ = try await XML.Node.decode(from: MemoryStream("<element/>"))
 }
 
 @Test("Decode NodeElement")
 func decodeNodeElement() async throws {
-    let node = try await XML.Node.decode(from: InputByteStream("<element/>"))
+    let node = try await XML.Node.decode(from: MemoryStream("<element/>"))
     #expect(node == .element(.init(name: "element")))
 }
 
 @Test("Decode NodeText")
 func decodeNodeText() async throws {
-    let stream = InputByteStream("""
+    let stream = MemoryStream("""
         <root>
             text start
             <element/>
@@ -71,14 +71,14 @@ func decodeNodeText() async throws {
 
 @Test("Decode SelfElement")
 func decodeSelfElement() async throws {
-    let stream = InputByteStream("<element/>")
+    let stream = MemoryStream("<element/>")
     let element = try await XML.Element.decode(from: stream)
     #expect(element == XML.Element(name: "element"))
 }
 
 @Test("Decode TextElement")
 func decodeTextElement() async throws {
-    let stream = InputByteStream("<element>text</element>")
+    let stream = MemoryStream("<element>text</element>")
     let element = try await XML.Element.decode(from: stream)
     #expect(element == XML.Element(
         name: "element",
@@ -87,7 +87,7 @@ func decodeTextElement() async throws {
 
 @Test("Decode Element")
 func decodeElement() async throws {
-    let stream = InputByteStream("""
+    let stream = MemoryStream("""
         <root>
             <element>text</element>
         </root>
@@ -103,7 +103,7 @@ func decodeElement() async throws {
 
 @Test("Decode ElementChildren")
 func decodeElementChildren() async throws {
-    let stream = InputByteStream("""
+    let stream = MemoryStream("""
         <root>
             <element>text</element>
             <element2>text2</element2>
@@ -125,7 +125,7 @@ func decodeElementChildren() async throws {
 
 @Test("Decode SelfElementAttributes")
 func decodeSelfElementAttributes() async throws {
-    let stream = InputByteStream("<element name=\"value\"/>")
+    let stream = MemoryStream("<element name=\"value\"/>")
     let element = try await XML.Element.decode(from: stream)
     #expect(element == XML.Element(
         name: "element",
@@ -135,7 +135,7 @@ func decodeSelfElementAttributes() async throws {
 
 @Test("Decode TextElementAttributes")
 func decodeTextElementAttributes() async throws {
-    let stream = InputByteStream(
+    let stream = MemoryStream(
         "<element name=\"value\">text</element>")
     let element = try await XML.Element.decode(from: stream)
     #expect(element == XML.Element(
